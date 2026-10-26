@@ -18,15 +18,16 @@ The project also supports my professional development by strengthening my abilit
 
 Each unknown function accepts a continuous input vector:
 
-\[
-X=(x_1,x_2,\ldots,x_d)
-\]
+$$
+X = (x_1, x_2, \ldots, x_d)
+$$
 
-where the dimensionality \(d\) ranges from 2 to 8, and each input is constrained to:
+where the dimensionality $d$ ranges from 2 to 8, and each input is constrained to:
 
-\[
-0\leq x_i\leq1
-\]
+$$
+0 \leq x_i \leq 1
+$$
+
 
 For example, a valid three-dimensional query might be:
 
