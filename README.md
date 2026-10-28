@@ -18,7 +18,7 @@ This README records how my approach changed over the ten rounds. The [model card
 Each function accepts a vector of continuous inputs, with every coordinate constrained to the interval from 0 to 1, and returns one numerical objective value:
 
 $$
-\mathrm{UCB}(\mathbf{x}) = \mu(\mathbf{x}) + \beta\sigma(\mathbf{x})
+\mathbf{x}=(x_1,\ldots,x_d),\qquad y=f(\mathbf{x}),\qquad 0\leq x_i\leq 1.
 $$
 
 My objective is to **maximise** each function, not necessarily to reconstruct its entire response surface. For each weekly round, I select one input vector per function. Submitted coordinates must be specified to **six decimal places**. I then use the returned outputs to update the models before the next round.
@@ -26,7 +26,7 @@ My objective is to **maximise** each function, not necessarily to reconstruct it
 I began with the programme-provided initial observations and fitted a separate Gaussian Process to each function. A GP is useful here because it estimates both an expected output and uncertainty at untested inputs. Much of my query selection has been based on the Upper Confidence Bound (UCB) acquisition function:
 
 $$
-\operatorname{UCB}(\mathbf{x})=\mu(\mathbf{x})+\beta\sigma(\mathbf{x}).
+\mathrm{UCB}(\mathbf{x}) = \mu(\mathbf{x}) + \beta\sigma(\mathbf{x})
 $$
 
 A larger exploration parameter, \(\beta\), gives more weight to uncertainty; a smaller value favours inputs with higher predicted outputs. Over time, I also considered how close a candidate was to previous evaluations and whether different kernel models supported the same region. The highest UCB score was not always the most informative query.
