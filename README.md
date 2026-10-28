@@ -3,7 +3,7 @@
 **Professional Certificate in Machine Learning and Artificial Intelligence**  
 **Imperial College Business School, London**  
 **Progress:** Week 10 input submission; results available through Week 9 (28 October 2026)  
-**Related documents:** [data sheet](data_sheet.md) [model card](model_card.md)
+**Related documents:** [dataset datasheet](data_sheet.md); [model card](model_card.md)
 
 ## 1. Project overview
 
