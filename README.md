@@ -18,7 +18,7 @@ This README records how my approach changed over the ten rounds. The [model card
 Each function accepts a vector of continuous inputs, with every coordinate constrained to the interval from 0 to 1, and returns one numerical objective value:
 
 $$
-\mathbf{x}=(x_1,\ldots,x_d),\qquad y=f(\mathbf{x}),\qquad 0\leq x_i\leq 1.
+\mathrm{UCB}(\mathbf{x}) = \mu(\mathbf{x}) + \beta\sigma(\mathbf{x})
 $$
 
 My objective is to **maximise** each function, not necessarily to reconstruct its entire response surface. For each weekly round, I select one input vector per function. Submitted coordinates must be specified to **six decimal places**. I then use the returned outputs to update the models before the next round.
