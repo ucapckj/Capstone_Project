@@ -20,7 +20,7 @@ I fitted a separate `GaussianProcessRegressor` (scikit-learn) to each function r
 Most of my queries were guided by the Upper Confidence Bound (UCB) acquisition function:
 
 $$
-\operatorname{UCB}(x) = \mu(x) + \beta\sigma(x)
+\mathrm{UCB}(\mathbf{x}) = \mu(\mathbf{x}) + \beta\sigma(\mathbf{x})
 $$
 
 Here, $\mu(x)$ is the predicted mean, $\sigma(x)$ represents uncertainty, and $\beta$ controls the emphasis on exploration. I generally selected a high-scoring candidate, while also checking its distance from earlier observations, whether it sat in a promising region, and how sensitive the recommendation was to the kernel. The highest acquisition score was not always the final choice.
