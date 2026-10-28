@@ -8,7 +8,7 @@
 
 This dataset was developed as part of my capstone project for the Professional Certificate in Machine Learning and Artificial Intelligence, offered by Imperial College Business School in London.
 
-The project is based on the approach used in the NeurIPS 2020 Black-Box Optimization for Machine Learning competition. The aim is to find the highest possible output from eight unknown functions, using a limited number of evaluations. For each function, I can choose an input and observe the resulting output, but I do not know the mathematical expression or how the function behaves elsewhere.
+The project is based on the approach used in the NeurIPS 2020 *Black-Box Optimization for Machine Learning* competition. The aim is to find the highest possible output from eight unknown functions, using a limited number of evaluations. For each function, I can choose an input and observe the resulting output, but I do not know the mathematical expression or how the function behaves elsewhere.
 
 I used the observations to build surrogate models, identify promising inputs and decide when to explore unfamiliar regions rather than refine areas that had already performed well. The main purpose of the dataset is to support and assess those decisions, not to train a conventional supervised model for deployment.
 
