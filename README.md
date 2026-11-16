@@ -2,116 +2,101 @@
 
 **Professional Certificate in Machine Learning and Artificial Intelligence**  
 **Imperial College Business School, London**  
-**Progress:** Week 10 input submission; results available through Week 9 (28 October 2026)  
-**Related documents:** [dataset datasheet](data_sheet.md); [model card](model_card.md)
+**Project status:** All 13 weekly evaluation rounds completed (November 2026)  
+**Related documents:** [Dataset datasheet](data_sheet.md) | [Model card](model_card.md)
 
-## 1. Project overview
+## Project overview
 
-This capstone explores **black-box optimisation (BBO)**: finding inputs that maximise an unknown function when its mathematical expression and gradients are not available. I can evaluate a candidate input and observe the output, but each evaluation is limited, so the challenge is to make each new query useful.
+In this project, I tried to find the best inputs for eight mathematical functions without initially knowing how the functions worked. Each week I could test only one new input per function, so I used machine learning to estimate which experiments might be most useful. I started with Gaussian Process models, then adjusted my methods as the results came back. Several functions improved substantially. For one function, I discovered that the best result occurred at the upper boundary; for two others, I identified their mathematical structure and reached their known or calculated maxima. The project showed me why checking assumptions matters as much as refining models.
 
-The project contains eight separate numerical functions, with between two and eight input dimensions. I have mainly used **Gaussian Process Regression (GPR)** to estimate their behaviour and Bayesian optimisation techniques to select subsequent queries. The project draws on the approach used in the NeurIPS 2020 *Black-Box Optimization for Machine Learning* competition; further background is in the [dataset datasheet](data_sheet.md).
+## 1. Problem and approach
 
-This README records how my approach changed over the ten rounds. The [model card](model_card.md) covers the individual surrogate models, their performance and limitations, while the [datasheet](data_sheet.md) documents the observations and their collection.
+The capstone follows the *approach* of the NeurIPS 2020 Black-Box Optimization for Machine Learning competition; I do not assume that all eight challenge functions were taken from that competition. There were eight separate functions, with 2 to 8 inputs, each restricted to the interval [0, 1]. The objective was to **maximise each function** under a limited budget: 175 programme-provided starting observations followed by one evaluated query for each function in each of 13 rounds.
 
-## 2. Problem and approach
-
-Each function accepts a vector of continuous inputs, with every coordinate constrained to the interval from 0 to 1, and returns one numerical objective value:
+I initially used scikit-learn's `GaussianProcessRegressor` to estimate an output and uncertainty at untested inputs. Most early queries were guided by an Upper Confidence Bound (UCB) acquisition function:
 
 $$
-\mathbf{x}=(x_1,\ldots,x_d),\qquad y=f(\mathbf{x}),\qquad 0\leq x_i\leq 1.
+\mathrm{UCB}(\mathbf{x})=\mu(\mathbf{x})+\beta\sigma(\mathbf{x})
 $$
 
-My objective is to **maximise** each function, not necessarily to reconstruct its entire response surface. For each weekly round, I select one input vector per function. Submitted coordinates must be specified to **six decimal places**. I then use the returned outputs to update the models before the next round.
+Here, $\mu$ is the GP's predicted mean, $\sigma$ is its predictive standard deviation and $\beta$ controls the emphasis on uncertainty. I progressively compared RBF and Matérn kernels, isotropic and anisotropic length scales, noise assumptions, output transformations and ensembles. I also used hybrid global/local sampling, differential evolution, minimum-distance constraints and local refinement. The [model card](model_card.md) explains the model choices, performance and limitations without repeating the full weekly narrative.
 
-I began with the programme-provided initial observations and fitted a separate Gaussian Process to each function. A GP is useful here because it estimates both an expected output and uncertainty at untested inputs. Much of my query selection has been based on the Upper Confidence Bound (UCB) acquisition function:
+**Submission precision:** New input coordinates were submitted to **six decimal places**. The initial observations retain the precision of the supplied datasets.
 
-$$
-\mathrm{UCB}(\mathbf{x}) = \mu(\mathbf{x}) + \beta\sigma(\mathbf{x})
-$$
+## 2. Final results
 
-A larger exploration parameter, \(\beta\), gives more weight to uncertainty; a smaller value favours inputs with higher predicted outputs. Over time, I also considered how close a candidate was to previous evaluations and whether different kernel models supported the same region. The highest UCB score was not always the most informative query.
+The table uses **my best observed value across the initial data and all 13 weekly evaluations**, rather than the official leaderboard, which did not incorporate some late submissions. Higher is better for every function. “Best week” refers to the week in which that maximum was first observed.
 
-## 3. Progress by week
+| Function | Dimensions | Best from initial dataset | Final best observed | Best week |
+|:--|--:|--:|--:|:--|
+| 1 | 2 | 7.71 × 10⁻¹⁶ | 0.000006756159 | 13 |
+| 2 | 2 | 0.611205 | 0.670534 | 12 |
+| 3 | 3 | −0.034835 | −0.000123351 | 13 |
+| 4 | 4 | −4.025542 | 0.625128 | 5 |
+| 5 | 4 | 1,088.860 | 8,662.482500 | 7 |
+| 6 | 5 | −0.714265 | −0.001592738 | 10 |
+| 7 | 6 | 1.364968 | 3.322368011 | 13 |
+| 8 | 8 | 9.598482 | 10.000000 | 11 |
 
-### Week 1: Establishing a baseline
+The values are not directly comparable across functions because their scales differ. For Function 5, `(1, 1, 1, 1)` gave the highest observed output; later tests supported a permutation-symmetric response. Function 7 was identified as the standard **Hartmann-6** benchmark, and its Week 13 input reached the known maximum. For Function 8, a recovered separable quadratic predicted the maximum of **10**, confirmed in Week 11 and tested again in Weeks 12–13. These structural identifications are different from the earlier GP-guided optimisation results.
 
-I fitted initial GP surrogate models and used UCB to guide the first additional queries. This gave me a more systematic starting point than sampling at random, although I still had limited evidence about the shape of each function.
+## 3. How the work developed
 
-### Week 2: Refining the assumptions
+The notebooks retain the experimental code and the decisions leading to each weekly submission. The summary below highlights changes rather than reproducing every query.
 
-After receiving the first new outputs, I examined the effect of GP kernel length scales and the UCB exploration parameter. Five functions had improved on their initial best values by this point, but the results also showed that a reasonable-looking surrogate did not always identify a better input.
+| Round | Main development and lesson |
+|:--|:--|
+| **1** | Established a GP–UCB baseline and made the first additional submissions. |
+| **2** | Tuned kernel length scales and increased exploration in several functions; candidate searches moved beyond small grids. |
+| **3** | Introduced hybrid global/local sampling and compared isotropic with anisotropic RBF kernels. |
+| **4** | Reduced exploration on selected functions. Function 3 achieved a strong local result (approximately −0.000133). |
+| **5** | Matérn models helped identify Function 4's personal best (0.625128); Functions 5, 7 and 8 also improved. |
+| **6** | Function 5 climbed above 8,135, while Function 6 improved to −0.150876. Prediction checks and function-specific settings became more important. |
+| **7** | Function 5 reached **8,662.4825** at the upper corner. Differential evolution, distance constraints and ensembles were increasingly used elsewhere. |
+| **8** | No function improved its running best. The Function 5 test `(1, 0.95, 1, 1)` began a series investigating coordinate symmetry. |
+| **9** | Functions 6–8 improved. Function 7 moved to a Matérn GP and reached 2.425432; the second Function 5 symmetry test matched Week 8's output. |
+| **10** | Function 6 achieved **−0.001593** with a noise-aware, constrained GP–UCB search. A broad Function 2 exploration performed poorly. |
+| **11** | Function 8's quadratic model predicted the input that returned **10.0**. Function 5's four single-coordinate symmetry tests were complete. |
+| **12** | Function 2 reached its personal best (0.670534). Function 7's six-GP ensemble found a new best (2.477715). Function 8's quadratic passed a deliberate perturbation test. |
+| **13** | Function 7's identified Hartmann-6 formula led to **3.322368011**. Functions 1 and 3 reached new personal bests; Functions 5 and 8 were tested further for structural accuracy. |
 
-### Week 3: Starting to distinguish the functions
+The main change in my approach was moving from a largely generic GP acquisition procedure to **function-specific decisions informed by model errors, observed patterns and deliberate tests**. The limitations were equally informative. For example, Function 2's final ensemble was overly optimistic, and tiny local adjustments around Function 6's best point could return substantially worse results.
 
-I began to consider whether a broad search or a more local query was appropriate for each function. The results were quite different across the eight problems, which made a single set of GP parameters increasingly difficult to justify. Functions 4 and 5 reached new best values in this round.
+## 4. Repository contents
 
-### Week 4: Testing sensitivity to nearby inputs
+```text
+.
+├── README.md                    Project overview, approach and results
+├── data_sheet.md                Data provenance, composition and limitations
+├── model_card.md                Modelling strategies, performance and limitations
+├── requirements.txt             Python environment
+├── function_1/ ... function_8/
+│   ├── function_N.ipynb         Weekly experiments for each function
+│   ├── initial_inputs.npy       Starting input observations
+│   └── initial_outputs.npy      Starting objective values
+├── submissions/
+│   ├── inputs.txt               Weekly submitted inputs
+│   ├── outputs.txt              Weekly returned outputs
+│   ├── weekly_submissions.csv   One row per evaluated query (104 rows)
+│   └── best_weekly_results.csv  Best result achieved by function
+└── scripts/
+    ├── check_data.py            Optional data consistency checks
+    └── check_weekly_data.py     Optional weekly-record checks
+```
 
-The fourth submissions improved the best observed values for Functions 2, 3, 5 and 6. Function 3 reached approximately **−0.000133**, while Function 5 improved to around **2,909.9**.
+The eight notebooks are organised chronologically, with a common imports/setup cell, weekly model experiments and the evaluated queries. Alternative configurations are included when relevant to the choice of submission.
 
-Function 4 offered a useful warning: its output moved from approximately **+0.260** in Week 3 to **−0.301** in Week 4 at relatively nearby inputs. This suggested that parts of its response surface were changing more sharply than my original GP assumptions allowed. I began giving more attention to alternative kernels and local sensitivity, rather than trusting the fitted mean on its own.
+## 5. Running the notebooks
 
-### Week 5: Comparing kernels more seriously
+1. Install the dependencies with `python -m pip install -r requirements.txt`.
+2. Open Jupyter from the repository folder, or open a notebook directly from its `function_N/` directory.
+3. Run the setup cell, then work through the weekly sections in order. The notebooks reuse fitted models and data arrays across rounds, and some earlier candidate searches require substantial memory. Review these cells before using **Run All**.
+4. The full 13-week input and output history is in `submissions/weekly_submissions.csv`. The Week 13 outputs are shown at the end of the respective notebooks.
 
-New maxima were obtained for Functions 4, 5, 7 and 8. Function 4's result of approximately **0.625128** was especially encouraging after the previous week's decline. Function 5 reached about **4,727.1**.
+The optional data consistency checks can be run with `python scripts/check_data.py` or `python scripts/check_weekly_data.py`.
 
-I increasingly compared RBF and Matérn kernels. The smoother RBF was not necessarily the best choice for functions with sharper local changes. I also became more cautious about changing several modelling settings simultaneously, since doing so made it harder to understand which change had helped.
+## 6. Data availability and reuse
 
-### Week 6: Checking predictions against new results
+The initial observations and black-box evaluation platform were supplied through the programme. The initial `.npy` arrays and the weekly query/output history are included in the complete repository package. Public distribution is subject to the programme's data-sharing terms. If public release is not permitted, describe the restricted datasets and provide authorised access details instead of hosting them. Large datasets should be kept outside GitHub; this project's numerical observations are small.
 
-Functions 5, 6, 7 and 8 improved again. Function 5 reached approximately **8,135.8**, and Function 6 achieved a less-negative maximum of approximately **−0.150876**.
-
-I started relying more heavily on **leave-one-out cross-validation (LOOCV)** and comparisons with predictions made before new results were known. I wanted to distinguish a model that fitted the existing observations well from one that could actually guide the next evaluation. The results also supported using different exploration settings and search regions for different functions.
-
-### Week 7: Refining promising regions
-
-Function 5 reached **8,662.4825** at the upper corner `(1, 1, 1, 1)`. Functions 7 and 8 also set new maxima, of approximately **2.027249** and **9.964165**, respectively.
-
-These results made local refinement increasingly attractive for some functions. At the same time, I did not want to assume that finding a strong local result meant the global optimum had been found. I continued considering broader candidates where the models were uncertain or where progress had stalled.
-
-### Week 8: Learning from unsuccessful queries
-
-**None of the eight functions improved its best observed output in Week 8.** This was an important counterpoint to the earlier gains. In particular, Function 7 returned a weaker-than-expected result near a previously successful region, exposing a limitation in the GP's local predictions.
-
-Rather than simply increasing the complexity of the models, I compared alternative kernel choices, validation errors and uncertainty estimates. I also used minimum-distance constraints and local search regions where appropriate, to avoid repeatedly evaluating nearly identical inputs without a clear reason.
-
-For Function 5, reducing the second input from 1 to 0.95, while holding the other coordinates at 1, produced **7,786.371350**. This provided a useful controlled comparison with the Week 7 maximum.
-
-### Week 9: Updating the strategy after new evidence
-
-Week 9 produced new maxima for three functions:
-
-- **Function 6:** **−0.086816**, improving on Week 6.
-- **Function 7:** **2.425432**, a substantial improvement on its Week 7 maximum.
-- **Function 8:** **9.982223**, a smaller improvement on its Week 7 result.
-
-Other functions demonstrated why **prediction accuracy and optimisation success are not the same**. For example, the Week 9 predictions for Functions 2 and 3 were reasonably close to the returned outputs, but neither query improved the best value. Function 4's actual output was considerably below its GP forecast.
-
-For Function 5, changing the third input to 0.95 returned the same output as the Week 8 test of the second input. This led me to plan another controlled test of input sensitivity for the final round. For Functions 7 and 8, I also began using GP ensembles to avoid relying entirely on one kernel's assumptions.
-
-### Week 10: Selecting the final inputs
-
-I used all observations returned through Week 9 to make the final query choices. The strategies were deliberately different: some inputs refine a strong region, while others test a part of the search space that the earlier queries had not explored sufficiently.
-
-The following are the **inputs chosen for the Week 10 submission**, with all coordinates shown to six decimal places:
-
-| Function | Week 10 input vector | Reason for selection |
-|---|---|---|
-| 1 | `(0.000000, 0.000000)` | Explore a distant, untested corner because most observed outputs are effectively zero. |
-| 2 | `(0.973000, 0.400000)` | Move away from the repeatedly sampled region around the earlier maximum. |
-| 3 | `(0.464942, 0.606056, 0.448490)` | Refine the neighbourhood of the Week 4 maximum with moderate exploration. |
-| 4 | `(0.395750, 0.355914, 0.357177, 0.393665)` | Test a constrained candidate supported by the better-performing GP models. |
-| 5 | `(0.950000, 1.000000, 1.000000, 1.000000)` | Test whether reducing the first input has an effect comparable to the Week 8 and 9 tests of the second and third inputs. |
-| 6 | `(0.391479, 0.366644, 0.681207, 0.766389, 0.083007)` | Continue exploring around the new Week 9 maximum. |
-| 7 | `(0.016725, 0.215301, 0.249637, 0.368315, 0.280830, 0.630035)` | Refine the improved Week 9 region using an RBF/Matérn ensemble. |
-| 8 | `(0.121616, 0.212254, 0.127558, 0.105313, 0.720775, 0.503004, 0.199956, 0.694395)` | Test a broader direction within the promising region using the GP ensemble. |
-
-The Function 5 query is a **deliberate controlled test**, rather than the unmodified optimum of its acquisition function. For Function 1, I likewise prioritised better spatial coverage over a small advantage in predicted UCB.
-
-**Week 10 results are not included here.** The latest evaluated dataset contains 247 observations: 175 initial observations and 72 outputs returned from Weeks 1–9. The eight Week 10 selections above should not be counted as completed evaluations until their outputs are available. The latest best observed results and surrogate performance comparisons are in the [model card](model_card.md).
-
-## 4. Lessons and next steps
-
-The main change in my approach was moving from a fairly standard GP-UCB procedure towards **function-specific, evidence-led query selection**. I found that an apparently accurate model could still recommend an unproductive query, while a less accurate prediction might lead to a new maximum. LOOCV, chronological backtesting and comparisons between kernel models helped me understand those trade-offs, although none removed the uncertainty created by small and adaptively collected datasets.
-
-Once the Week 10 outputs are available, I will compare them with the recorded predictions, update the best observed values and reflect on which final-round decisions were most useful. The [model card](model_card.md) will hold the detailed performance assessment, and the [datasheet](data_sheet.md) will be updated to include any new evaluated observations.
+The notebooks document exploratory educational work, not a production optimisation service. See [Data access and reuse](DATA_ACCESS.md) for publication considerations. The [datasheet](data_sheet.md) records the sampling and distribution caveats, and the [model card](model_card.md) explains assumptions, validation and responsible reuse.
